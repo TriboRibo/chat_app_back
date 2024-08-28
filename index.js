@@ -9,7 +9,14 @@ require('dotenv').config()
 const app = express()
 //Create a server and attach socket to it
 const Server = http.createServer(app)
-const io = socketIo(Server)
+const io = socketIo(Server, {
+	cors: {
+		origin: 'http://localhost:5173',
+		method: ['GET', 'POST']
+	}
+})
+//store for connected users
+const connectedUsers = {}
 //DB connection
 const connectToMongoD = async () => {
 	try {
@@ -22,15 +29,33 @@ const connectToMongoD = async () => {
 //io accessible to routes
 app.set('io', io)
 //middleware setup
-app.use(cors())
+app.use(cors({
+	origin: 'http://localhost:5173',
+	method: ['GET', 'POST']
+}))
 app.use(express.json())
 //Here routes above
 app.use('/', mainRoutes)
 //Socket io logic
 io.on('connection', (socket) => {
-	console.log('New socket connection')
+	console.log('New socket connection:', socket.id)
+	socket.on('setUsername', (username) => {
+		connectedUsers[socket.id] = username
+		const userList = Object.values(connectedUsers)
+		//broadcast updated use list to all clients
+		io.emit('userListUpdate', userList)
+		//notify the new user of the current user list
+		socket.emit('userListUpdate', userList)
+		console.log('user List updated:', userList)
+	})
 	socket.on('disconnect', () => {
-		console.log('Client disconnected')
+		//Remove user from the list when the disconnected
+		delete connectedUsers[socket.id]
+		const userList = Object.values(connectedUsers)
+		//Broadcast updated user list to all clients
+		io.emit('userListUpdate', userList)
+		console.log('Client disconnected', socket.id)
+		console.log('updated userList:', userList)
 	})
 })
 //Start the server
