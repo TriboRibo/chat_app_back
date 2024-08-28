@@ -21,11 +21,8 @@ module.exports = {
 				name: name,
 				password: passHash
 			})
-
 			await newUser.save();
 
-			//fetch the updated users
-			// const users = await User.find()
 			//broadcast the updated users
 			const io = req.app.get('io')
 			io.emit('userListUpdate')
