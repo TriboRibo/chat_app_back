@@ -24,6 +24,12 @@ module.exports = {
 
 			await newUser.save();
 
+			//fetch the updated users
+			// const users = await User.find()
+			//broadcast the updated users
+			const io = req.app.get('io')
+			io.emit('userListUpdate')
+
 			return res.status(201).json({success: true, message: 'Registered successfully.'})
 		} catch (error) {
 			console.error('kazkokia klaida prie registracijoss', error)
