@@ -15,8 +15,9 @@ const io = socketIo(Server, {
 		method: ['GET', 'POST']
 	}
 })
-//store for connected users
+//store for connected and registered users
 const connectedUsers = {}
+const userList = {}
 //DB connection
 const connectToMongoD = async () => {
 	try {
@@ -39,24 +40,36 @@ app.use('/', mainRoutes)
 //Socket io logic
 io.on('connection', (socket) => {
 	console.log('New socket connection:', socket.id)
+	//Notify new client of the current user list and connected users
+	// socket.emit('userListUpdate', Object.keys(userList))
+	// console.log('user List updated:', Object.values(userList))
+	//Send the list of connected users to the new client
+	socket.emit('connectedUsersUpdate', Object.values(connectedUsers))
+	console.log('connected users:', Object.values(connectedUsers))
+
+	//Notify all users about new user logged in
 	socket.on('setUsername', (username) => {
 		connectedUsers[socket.id] = username
-		const userList = Object.values(connectedUsers)
 		//broadcast updated use list to all clients
-		io.emit('userListUpdate', userList)
+		// io.emit('userListUpdate', Object.values(connectedUsers))
 		//notify the new user of the current user list
-		socket.emit('userListUpdate', userList)
-		console.log('user List updated:', userList)
+		io.emit('connectedUsersUpdate', Object.values(connectedUsers))
+		console.log('Logged in', username)
+		console.log('Updated connected users:', Object.values(connectedUsers))
 	})
 	socket.on('disconnect', () => {
 		//Remove user from the list when the disconnected
 		delete connectedUsers[socket.id]
-		const userList = Object.values(connectedUsers)
 		//Broadcast updated user list to all clients
-		io.emit('userListUpdate', userList)
-		console.log('Client disconnected', socket.id)
-		console.log('updated userList:', userList)
+		// io.emit('userListUpdate', Object.values(connectedUsers))
+		// io.emit('userDisconnected', connectedUsers[socket.id])
+		// console.log('Client disconnected', socket.id)
+		// console.log('updated userList:', Object.values(connectedUsers))
+		io.emit('connectedUsersUpdate', Object.values(connectedUsers))
+		console.log('Client disconnected:', socket.id)
+		console.log('Updated connected users:', Object.values(connectedUsers))
 	})
+	io.emit('connectedUsersUpdate', Object.values(connectedUsers))
 })
 //Start the server
 const PORT = process.env.PORT || 3000
