@@ -1,0 +1,32 @@
+# Node modules
+node_modules/
+
+# Logs
+*.log
+logs/
+
+# Environment variables
+.env
+
+# Dependency directories
+plugins/
+
+# Compiled output
+dist/
+build/
+
+# IDE and editor settings
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# System files
+.DS_Store
+Thumbs.db
+*.swp
+*~
+
+# Package manager files (optional, depending on your workflow)
+package-lock.json
+yarn.lock
