@@ -40,19 +40,14 @@ app.use('/', mainRoutes)
 //Socket io logic
 io.on('connection', (socket) => {
 	console.log('New socket connection:', socket.id)
-	//Notify new client of the current user list and connected users
-	// socket.emit('userListUpdate', Object.keys(userList))
-	// console.log('user List updated:', Object.values(userList))
-	//Send the list of connected users to the new client
+	//Send the list of connected users to the other users
 	socket.emit('connectedUsersUpdate', Object.values(connectedUsers))
 	console.log('connected users:', Object.values(connectedUsers))
 
 	//Notify all users about new user logged in
 	socket.on('setUsername', (username) => {
 		connectedUsers[socket.id] = username
-		//broadcast updated use list to all clients
-		// io.emit('userListUpdate', Object.values(connectedUsers))
-		//notify the new user of the current user list
+		//broadcast connected users
 		io.emit('connectedUsersUpdate', Object.values(connectedUsers))
 		console.log('Logged in', username)
 		console.log('Updated connected users:', Object.values(connectedUsers))
@@ -61,10 +56,6 @@ io.on('connection', (socket) => {
 		//Remove user from the list when the disconnected
 		delete connectedUsers[socket.id]
 		//Broadcast updated user list to all clients
-		// io.emit('userListUpdate', Object.values(connectedUsers))
-		// io.emit('userDisconnected', connectedUsers[socket.id])
-		// console.log('Client disconnected', socket.id)
-		// console.log('updated userList:', Object.values(connectedUsers))
 		io.emit('connectedUsersUpdate', Object.values(connectedUsers))
 		console.log('Client disconnected:', socket.id)
 		console.log('Updated connected users:', Object.values(connectedUsers))
@@ -72,7 +63,7 @@ io.on('connection', (socket) => {
 	io.emit('connectedUsersUpdate', Object.values(connectedUsers))
 })
 //Start the server
-const PORT = process.env.PORT || 3000
+const PORT = process.env.PORT
 Server.listen(PORT, async () => {
 	try {
 		await connectToMongoD()
