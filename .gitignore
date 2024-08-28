@@ -8,8 +8,8 @@ logs/
 # Environment variables
 .env
 
-# Dependency directories
-plugins/
+## Dependency directories
+#plugins/
 
 # Compiled output
 dist/
