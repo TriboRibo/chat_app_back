@@ -4,7 +4,8 @@ const Router = express.Router()
 const {
 	register,
 	logIn,
-	getAllUsers
+	getAllUsers,
+	getSingleUser,
 } = require('../controllers/mainController')
 
 const {
@@ -15,4 +16,6 @@ const {
 Router.post('/registerNewUser', registerValidation, register)
 Router.post('/login', logInValidation, logIn)
 Router.get('/getAllMembers', getAllUsers)
+
+Router.get('/getUser/:name', getSingleUser)
 module.exports = Router

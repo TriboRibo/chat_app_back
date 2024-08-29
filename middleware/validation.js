@@ -15,10 +15,10 @@ module.exports = {
 		if (password !== repeatPassword) {
 			return res.status(400).json({error: 'Passwords must be match.'})
 		}
-		const passwordRegex = /^(?=.*[!@#$%^&*_+])[A-Za-z\d!@#$%^&*_+]{4,20}$/;
+		const passwordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*[!@#$%^&*_+])[A-Za-z\d!@#$%^&*_+]{4,20}$/
 		if (!passwordRegex.test(password)) {
 			return res.status(400).json({
-				error: 'Password must be 4-20 characters long, include at least one special symbol (!@#$%^&*_+).'
+				error: 'Password must be 4-20 characters long, include at least one uppercase letter, one lowercase letter, and one special character (!@#$%^&*_+), and may contain digits.'
 			});
 		}
 		next()
