@@ -4,6 +4,7 @@ const socketIo = require('socket.io')
 const cors = require('cors')
 const mongoose = require('mongoose')
 const mainRoutes = require('./routes/mainRoute')
+
 require('dotenv').config()
 
 const app = express()
@@ -17,7 +18,6 @@ const io = socketIo(Server, {
 })
 //store for connected and registered users
 const connectedUsers = {}
-const userList = {}
 //DB connection
 const connectToMongoD = async () => {
 	try {
@@ -42,7 +42,7 @@ io.on('connection', (socket) => {
 	console.log('New socket connection:', socket.id)
 	//Send the list of connected users to the other users
 	socket.emit('connectedUsersUpdate', Object.values(connectedUsers))
-	console.log('connected users:', Object.values(connectedUsers))
+	// console.log('connected users:', Object.values(connectedUsers))
 
 	//Notify all users about new user logged in
 	socket.on('setUsername', (username) => {
@@ -60,7 +60,6 @@ io.on('connection', (socket) => {
 		console.log('Client disconnected:', socket.id)
 		console.log('Updated connected users:', Object.values(connectedUsers))
 	})
-	io.emit('connectedUsersUpdate', Object.values(connectedUsers))
 })
 //Start the server
 const PORT = process.env.PORT
