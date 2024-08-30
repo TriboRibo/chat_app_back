@@ -1,4 +1,5 @@
 const User = require('../schemas/userSchema')
+const PublicMessage = require('../schemas/publicMessageSchema')
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
@@ -49,12 +50,16 @@ module.exports = {
 
 			//broadcast event notify all clients
 			const io = req.app.get('io')
-			io.emit('connectedUsersUpdate')
-			// io.emit('connectedUsersUpdate', Object.values(req.app.get('connectedUsers')))
+			io.emit('connectedUsersUpdate', {
+				id: user._id,
+				username: user.name,
+				avatar: user.avatar,
+			})
 
 			return res.status(200).json({success: true, token, data: {
 					id: user._id,
 					username: user.name,
+					avatar: user.avatar
 				},
 				message: 'Logged in successfully.'
 			})
@@ -84,5 +89,54 @@ module.exports = {
 			console.error('Error fetching user details', error)
 			return res.status(500).json({success: false, error: error.message})
 		}
-	}
+	},
+	sendPublicMessage: async (req, res) => {
+		const {sender, content} = req.body;
+		try {
+			const message = new PublicMessage({sender, content})
+			await message.save()
+			res.status(201).json({success: true, message: 'Message sent successfully.'})
+		} catch (error) {
+			res.status(500).json({success: false, error: 'Failed to send message.'})
+		}
+	},
+	getPublicMessage: async (req, res) => {
+		try {
+			const messages = await PublicMessage.find().sort({ timestamp: 1})
+			res.status(200).json({success: true, messages})
+		} catch (error) {
+			res.status(500).json({success: false, error: 'Failed to retrieve messages.'})
+		}
+	},
+
+	// sendMessageToUser: async (req, res) => {
+	// 	const {senderName, receiverName, content} = req.body
+	// 	try {
+	// 		const message = new Message({
+	// 			sender: senderName,
+	// 			receiver: receiverName,
+	// 			content
+	// 		})
+	// 		await message.save()
+	// 		req.app.get('io').emit('newMessage', {message})
+	//
+	// 		res.status(200).json({success: true, message: 'Message sent successfully.'})
+	// 	} catch (error) {
+	// 		res.status(500).json({success: false, message: 'Failed to send message.', error})
+	// 	}
+	// },
+	// receiveMessageFromUser: async (req, res) => {
+	// 	const {senderName, receiverName} = req.params
+	// 	try {
+	// 		const message = await Message.find({
+	// 			$or: [
+	// 				{sender: senderName, receiver: receiverName},
+	// 				{sender: receiverName, receiver: senderName},
+	// 			],
+	// 		}).sort({timestamp: 1})
+	// 		res.status(200).json({success: true, messages})
+	// 	} catch (error) {
+	// 		res.status(500).json({success: false, message: 'Failed to retrieve messages', error})
+	// 	}
+	// }
 }

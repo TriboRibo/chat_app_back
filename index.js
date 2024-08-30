@@ -27,6 +27,7 @@ const connectToMongoD = async () => {
 		console.log('Error connecting to MongoDb', error.message)
 	}
 }
+
 //io accessible to routes
 app.set('io', io)
 //middleware setup
@@ -45,12 +46,16 @@ io.on('connection', (socket) => {
 	// console.log('connected users:', Object.values(connectedUsers))
 
 	//Notify all users about new user logged in
-	socket.on('setUsername', (username) => {
-		connectedUsers[socket.id] = username
+	socket.on('setUsername', (user) => {
+		connectedUsers[socket.id] = user
 		//broadcast connected users
 		io.emit('connectedUsersUpdate', Object.values(connectedUsers))
-		console.log('Logged in', username)
+		console.log('Logged in', user)
 		console.log('Updated connected users:', Object.values(connectedUsers))
+	})
+	socket.on('sendMessage', (message) => {
+		io.emit('receiveMessage', message)
+		console.log('Message sent:', message)
 	})
 	socket.on('disconnect', () => {
 		//Remove user from the list when the disconnected
