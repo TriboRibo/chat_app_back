@@ -116,21 +116,25 @@ module.exports = {
 			return res.status(400).json({success: false, error: 'User ID and new username are required.'})
 		}
 		try {
+			const currentUser = await User.findById(userId)
+			if (!currentUser) {
+				return res.status(404).json({success: false, error: 'User does not exist.'})
+			}
+			const existingUser = await User.findOne({name})
+			if (existingUser){
+				return res.status(400).json({success: false, error: 'User already exists'})
+			}
+			if (currentUser.name === name) {
+				return res.status(400).json({success: false, error: 'New username is the same as the current one.'})
+			}
 			const user = await User.findByIdAndUpdate(userId, {name: name}, {new: true})
 			console.log('updated user:', user)
-			if (!user) {
-				return res.status(404).json({success: false, error: 'User not found.'})
-			}
-			// if (user.name === name) {
-			// 	return res.status(400).json({ success: false, message: 'New username cannot be the same as the current username.' });
-			// }
-			// const existingUser = await User.findOne({name})
-			// if (existingUser) {
-			// 	return res.status(400).json({success: false, error: 'Username is exist.'})
-			// }
-
 			const io = req.app.get('io')
 			io.emit('userListUpdate')
+			io.emit('connectedUsersUpdate', {
+				id: user._id,
+				username: user.name,
+				avatar: user.avatar });
 			return res.status(200).json({success: true, message: 'Username changed successfully.', data: {id: user._id, name: user.name, avatar: user.avatar}})
 		} catch (error) {
 			console.error('Error updating username:', error);
@@ -177,11 +181,20 @@ module.exports = {
 			user.avatar = newAvatar
 			await user.save()
 			const io = req.app.get('io')
-			io.emit('userListUpdate', {
+			// io.emit('userListUpdate', {
+			// 	id: user._id,
+			// 	username: user.name,
+			// 	avatar: user.avatar,
+			// })
+			io.emit('userListUpdate')
+			io.emit('userProfileUpdated',{
 				id: user._id,
 				username: user.name,
-				avatar: user.avatar,
-			})
+				avatar: user.avatar });
+			io.emit('connectedUsersUpdate', {
+				id: user._id,
+				username: user.name,
+				avatar: user.avatar });
 			return res.status(200).json({success: true, message: 'Avatar updated successfully.', data: {id: user._id, name: user.name, avatar: user.avatar}})
 		} catch (error) {
 			return res.status(500).json({success: false, error: error.message})

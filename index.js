@@ -50,12 +50,24 @@ io.on('connection', (socket) => {
 		connectedUsers[socket.id] = user
 		//broadcast connected users
 		io.emit('connectedUsersUpdate', Object.values(connectedUsers))
+		// io.emit('userProfileUpdated', user)
 		console.log('Logged in', user)
-		console.log('Updated connected users:', Object.values(connectedUsers))
 	})
 	socket.on('sendMessage', (message) => {
 		io.emit('receiveMessage', message)
 		console.log('Message sent:', message)
+	})
+	socket.on('logout', (data) => {
+		const user = connectedUsers[socket.id]
+		if (user) {
+			delete connectedUsers[socket.id]
+			io.emit('connectedUsersUpdate', Object.values(connectedUsers))
+			console.log('User logged out:', user)
+		}
+	})
+	socket.on('userProfileUpdated', (updatedUser) => {
+		io.emit('userProfileUpdated', updatedUser)
+		console.log('Broadcasting user profile update:', updatedUser)
 	})
 	socket.on('disconnect', () => {
 		//Remove user from the list when the disconnected

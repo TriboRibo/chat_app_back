@@ -35,11 +35,11 @@ module.exports = {
 	},
 	validateUsername: (req, res, next) => {
 		const {name} = req.body
-		if (name.length < 4 || name.length > 20) {
-			return res.status(400).json({error: 'Username must be between 4 and 20 characters.'})
-		}
 		if (!name || typeof name !== "string")  {
 			return res.status(400).json({success: false, error: 'Invalid username'})
+		}
+		if (name.length < 4 || name.length > 20) {
+			return res.status(400).json({error: 'Username must be between 4 and 20 characters.'})
 		}
 		next()
 	},
