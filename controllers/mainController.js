@@ -1,5 +1,6 @@
 const User = require('../schemas/userSchema')
 const PublicMessage = require('../schemas/publicMessageSchema')
+const Room = require('../schemas/roomSchema')
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
@@ -199,36 +200,77 @@ module.exports = {
 		} catch (error) {
 			return res.status(500).json({success: false, error: error.message})
 		}
+	},
+	createRoom: async (req, res) => {
+		const {name} = req.body;
+		try {
+			const existingRoom = await Room.findOne({name});
+			if (existingRoom) {
+				return res.status(400).json({message: 'Room already exists'});
+			}
+			const room = new Room({name});
+			await room.save();
+			res.status(201).json(room);
+		} catch (error) {
+			res.status(500).json({message: error.message});
+		}
+	},
+	getRoom: async (req, res) => {
+		try {
+			const rooms = await Room.find();
+			res.status(200).json(rooms);
+		} catch (error) {
+			res.status(500).json({message: error.message});
+		}
+	},
+	getRoomDetails: async (req, res) => {
+		const { roomName } = req.params; // Use roomName from request parameters
+		try {
+			// Find the room by its name
+			const room = await Room.findOne({ name: roomName }).populate('participants').exec();
+			if (!room) {
+				return res.status(404).json({ message: 'Room not found' });
+			}
+
+			// Respond with room details
+			res.status(200).json({
+				messages: room.messages,
+				participants: room.participants
+			});
+		} catch (error) {
+			res.status(500).json({ message: error.message });
+		}
 	}
 
-	// sendMessageToUser: async (req, res) => {
-	// 	const {senderName, receiverName, content} = req.body
-	// 	try {
-	// 		const message = new Message({
-	// 			sender: senderName,
-	// 			receiver: receiverName,
-	// 			content
-	// 		})
-	// 		await message.save()
-	// 		req.app.get('io').emit('newMessage', {message})
-	//
-	// 		res.status(200).json({success: true, message: 'Message sent successfully.'})
-	// 	} catch (error) {
-	// 		res.status(500).json({success: false, message: 'Failed to send message.', error})
-	// 	}
-	// },
-	// receiveMessageFromUser: async (req, res) => {
-	// 	const {senderName, receiverName} = req.params
-	// 	try {
-	// 		const message = await Message.find({
-	// 			$or: [
-	// 				{sender: senderName, receiver: receiverName},
-	// 				{sender: receiverName, receiver: senderName},
-	// 			],
-	// 		}).sort({timestamp: 1})
-	// 		res.status(200).json({success: true, messages})
-	// 	} catch (error) {
-	// 		res.status(500).json({success: false, message: 'Failed to retrieve messages', error})
-	// 	}
-	// }
-}
+
+		// sendMessageToUser: async (req, res) => {
+		// 	const {senderName, receiverName, content} = req.body
+		// 	try {
+		// 		const message = new Message({
+		// 			sender: senderName,
+		// 			receiver: receiverName,
+		// 			content
+		// 		})
+		// 		await message.save()
+		// 		req.app.get('io').emit('newMessage', {message})
+		//
+		// 		res.status(200).json({success: true, message: 'Message sent successfully.'})
+		// 	} catch (error) {
+		// 		res.status(500).json({success: false, message: 'Failed to send message.', error})
+		// 	}
+		// },
+		// receiveMessageFromUser: async (req, res) => {
+		// 	const {senderName, receiverName} = req.params
+		// 	try {
+		// 		const message = await Message.find({
+		// 			$or: [
+		// 				{sender: senderName, receiver: receiverName},
+		// 				{sender: receiverName, receiver: senderName},
+		// 			],
+		// 		}).sort({timestamp: 1})
+		// 		res.status(200).json({success: true, messages})
+		// 	} catch (error) {
+		// 		res.status(500).json({success: false, message: 'Failed to retrieve messages', error})
+		// 	}
+		// }
+	}

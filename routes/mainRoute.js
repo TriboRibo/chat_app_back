@@ -12,7 +12,10 @@ const {
 	// receiveMessageFromUser
 	changeUsername,
 	changePassword,
-	changeAvatar
+	changeAvatar,
+	createRoom,
+	getRoom,
+	getRoomDetails
 } = require('../controllers/mainController')
 
 const {
@@ -33,6 +36,9 @@ Router.post('/changeUsername', validateUser, validateUsername, changeUsername)
 Router.post('/changePassword', validateUser, validatePassword, changePassword)
 Router.post('/changeAvatar', validateUser, validateAvatar, changeAvatar)
 //messaging routes
+Router.post('/createRoom', validateUser, createRoom)
+Router.get('/getRoom', validateUser, getRoom)
+Router.get('/getRoomDetails/:roomName', validateUser, getRoomDetails);
 // Router.post('/messages', sendPublicMessage)
 // Router.get('/messages', getPublicMessage)
 // Router.post('/send-message', sendMessageToUser)

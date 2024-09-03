@@ -88,5 +88,5 @@ module.exports = {
 			return res.status(400).json({error: 'Avatar URL must point to a valid image format (e.g., .jpg, .png).'})
 		}
 		next()
-	}
+	},
 }
