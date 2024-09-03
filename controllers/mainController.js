@@ -91,51 +91,51 @@ module.exports = {
 			return res.status(500).json({success: false, error: error.message})
 		}
 	},
-	sendPublicMessage: async (req, res) => {
-		const {sender, content} = req.body;
-		try {
-			const message = new PublicMessage({sender, content})
-			await message.save()
-			res.status(201).json({success: true, message: 'Message sent successfully.'})
-		} catch (error) {
-			res.status(500).json({success: false, error: 'Failed to send message.'})
-		}
-	},
-	getPublicMessage: async (req, res) => {
-		try {
-			const messages = await PublicMessage.find().sort({timestamp: 1})
-			res.status(200).json({success: true, messages})
-		} catch (error) {
-			res.status(500).json({success: false, error: 'Failed to retrieve messages.'})
-		}
-	},
 	changeUsername: async (req, res) => {
 		const {userId, name} = req.body
-
-		if (!userId || !name) {
-			return res.status(400).json({success: false, error: 'User ID and new username are required.'})
-		}
 		try {
 			const currentUser = await User.findById(userId)
 			if (!currentUser) {
 				return res.status(404).json({success: false, error: 'User does not exist.'})
 			}
 			const existingUser = await User.findOne({name})
-			if (existingUser){
-				return res.status(400).json({success: false, error: 'User already exists'})
+			if (existingUser) {
+				return res.status(400).json({success: false, error: 'Username already exists'})
 			}
 			if (currentUser.name === name) {
 				return res.status(400).json({success: false, error: 'New username is the same as the current one.'})
 			}
 			const user = await User.findByIdAndUpdate(userId, {name: name}, {new: true})
-			console.log('updated user:', user)
+
+			const updatedUser = await User.findByIdAndUpdate(
+				userId,
+				{name: name},
+				{new: true}
+			)
+			if (!updatedUser) {
+				return res.status(404).json({success: false, error: 'User not found.'});
+			}
+
 			const io = req.app.get('io')
-			io.emit('userListUpdate')
+			io.emit('userListUpdate', {
+				id: updatedUser._id,
+				username: updatedUser.name,
+				avatar: updatedUser.avatar,
+			});
 			io.emit('connectedUsersUpdate', {
-				id: user._id,
-				username: user.name,
-				avatar: user.avatar });
-			return res.status(200).json({success: true, message: 'Username changed successfully.', data: {id: user._id, name: user.name, avatar: user.avatar}})
+				id: updatedUser._id,
+				username: updatedUser.name,
+				avatar: updatedUser.avatar,
+			});
+			return res.status(200).json({
+				success: true,
+				message: 'Username changed successfully.',
+				data: {
+					id: updatedUser._id,
+					name: updatedUser.name,
+					avatar: updatedUser.avatar,
+				}
+			});
 		} catch (error) {
 			console.error('Error updating username:', error);
 			res.status(500).json({success: false, error: 'An error occurred while updating the username.'});
@@ -181,21 +181,21 @@ module.exports = {
 			user.avatar = newAvatar
 			await user.save()
 			const io = req.app.get('io')
-			// io.emit('userListUpdate', {
-			// 	id: user._id,
-			// 	username: user.name,
-			// 	avatar: user.avatar,
-			// })
-			io.emit('userListUpdate')
-			io.emit('userProfileUpdated',{
+			io.emit('userListUpdate', {
 				id: user._id,
 				username: user.name,
-				avatar: user.avatar });
+				avatar: user.avatar,
+			});
 			io.emit('connectedUsersUpdate', {
 				id: user._id,
 				username: user.name,
-				avatar: user.avatar });
-			return res.status(200).json({success: true, message: 'Avatar updated successfully.', data: {id: user._id, name: user.name, avatar: user.avatar}})
+				avatar: user.avatar,
+			});
+			return res.status(200).json({
+				success: true,
+				message: 'Avatar updated successfully.',
+				data: {id: user._id, name: user.name, avatar: user.avatar}
+			})
 		} catch (error) {
 			return res.status(500).json({success: false, error: error.message})
 		}
