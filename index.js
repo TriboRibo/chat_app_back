@@ -46,14 +46,14 @@ io.on('connection', (socket) => {
 
 	//Notify all users about new user logged in
 	socket.on('setUsername', (user) => {
-		if (!Object.values(connectedUsers).find(u => u.id === user.id)) {
-			connectedUsers[user.id] = user
-			io.emit('connectedUsersUpdate', Object.values(connectedUsers))
-		}
-		// connectedUsers[socket.id] = user
+		// if (!Object.values(connectedUsers).find(u => u.id === user.id)) {
+		// 	connectedUsers[user.id] = user
+		// 	io.emit('connectedUsersUpdate', Object.values(connectedUsers))
+		// }
+		connectedUsers[socket.id] = user
 		// //broadcast connected users
-		// io.emit('connectedUsersUpdate', Object.values(connectedUsers))
-		// io.emit('userProfileUpdated', user)
+		io.emit('connectedUsersUpdate', Object.values(connectedUsers))
+		io.emit('userProfileUpdated', user)
 	})
 	socket.on('sendMessage', (message) => {
 		io.emit('receiveMessage', message)
