@@ -40,42 +40,42 @@ app.use(express.json())
 app.use('/', mainRoutes)
 //Socket io logic
 io.on('connection', (socket) => {
-	console.log('New socket connection:', socket.id)
 	//Send the list of connected users to the other users
 	socket.emit('connectedUsersUpdate', Object.values(connectedUsers))
 	// console.log('connected users:', Object.values(connectedUsers))
 
 	//Notify all users about new user logged in
 	socket.on('setUsername', (user) => {
-		connectedUsers[socket.id] = user
-		//broadcast connected users
-		io.emit('connectedUsersUpdate', Object.values(connectedUsers))
+		if (!Object.values(connectedUsers).find(u => u.id === user.id)) {
+			connectedUsers[user.id] = user
+			io.emit('connectedUsersUpdate', Object.values(connectedUsers))
+		}
+		// connectedUsers[socket.id] = user
+		// //broadcast connected users
+		// io.emit('connectedUsersUpdate', Object.values(connectedUsers))
 		// io.emit('userProfileUpdated', user)
-		console.log('Logged in', user)
 	})
 	socket.on('sendMessage', (message) => {
 		io.emit('receiveMessage', message)
-		console.log('Message sent:', message)
 	})
 	socket.on('logout', (data) => {
 		const user = connectedUsers[socket.id]
 		if (user) {
 			delete connectedUsers[socket.id]
 			io.emit('connectedUsersUpdate', Object.values(connectedUsers))
-			console.log('User logged out:', user)
 		}
 	})
 	socket.on('userProfileUpdated', (updatedUser) => {
 		io.emit('userProfileUpdated', updatedUser)
-		console.log('Broadcasting user profile update:', updatedUser)
 	})
 	socket.on('disconnect', () => {
 		//Remove user from the list when the disconnected
 		delete connectedUsers[socket.id]
 		//Broadcast updated user list to all clients
 		io.emit('connectedUsersUpdate', Object.values(connectedUsers))
-		console.log('Client disconnected:', socket.id)
-		console.log('Updated connected users:', Object.values(connectedUsers))
+	})
+	socket.on('error', (error) => {
+		console.error('Socket error', error)
 	})
 })
 //Start the server

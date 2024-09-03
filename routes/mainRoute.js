@@ -16,6 +16,7 @@ const {
 } = require('../controllers/mainController')
 
 const {
+	validateUser,
 	registerValidation,
 	logInValidation,
 	validateUsername,
@@ -28,9 +29,9 @@ Router.post('/login', logInValidation, logIn)
 Router.get('/getAllMembers', getAllUsers)
 Router.get('/getUser/:name', getSingleUser)
 //change/update something
-Router.post('/changeUsername', validateUsername, changeUsername)
-Router.post('/changePassword', validatePassword, changePassword)
-Router.post('/changeAvatar', validateAvatar, changeAvatar)
+Router.post('/changeUsername', validateUser, validateUsername, changeUsername)
+Router.post('/changePassword', validateUser, validatePassword, changePassword)
+Router.post('/changeAvatar', validateUser, validateAvatar, changeAvatar)
 //messaging routes
 // Router.post('/messages', sendPublicMessage)
 // Router.get('/messages', getPublicMessage)
