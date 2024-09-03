@@ -68,6 +68,16 @@ io.on('connection', (socket) => {
 	socket.on('userProfileUpdated', (updatedUser) => {
 		io.emit('userProfileUpdated', updatedUser)
 	})
+	socket.on('createRoom', (roomName) => {
+		socket.join(roomName)
+		socket.emit('roomCreated', roomName)
+	})
+	socket.on('sendMessageToRoom', ({roomName, message}) => {
+		io.to(roomName).emit('receiveMessage', message)
+	})
+	socket.on('leaveRoom', (roomName) => {
+		socket.leave(roomName)
+	})
 	socket.on('disconnect', () => {
 		//Remove user from the list when the disconnected
 		delete connectedUsers[socket.id]
